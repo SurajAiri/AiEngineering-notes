@@ -150,7 +150,229 @@ for idx, score, text in results:
 
 ---
 
-## Part 2: Citation Alignment
+## Part 2: Context Packing Strategies
+
+### Breadth-First vs Depth-First
+
+Once you have ranked chunks, you must decide **how** to fill the context window. This is the **packing strategy** — and it directly affects answer quality.
+
+```
+BREADTH-FIRST PACKING:
+  Take ONE chunk from each source document.
+
+  [DocA: chunk1] [DocB: chunk1] [DocC: chunk1] [DocD: chunk1] [DocE: chunk1]
+
+  ✅ Diverse sources → comprehensive answers
+  ✅ Good for: "Compare X and Y", "What are the options?"
+  ❌ Shallow depth per document
+  ❌ May miss important detail only in a follow-up chunk
+
+DEPTH-FIRST PACKING:
+  Take MULTIPLE chunks from the top-ranked document.
+
+  [DocA: chunk1] [DocA: chunk2] [DocA: chunk3]
+
+  ✅ Deep context from one coherent source
+  ✅ Good for: "Explain step-by-step how X works"
+  ❌ Misses other perspectives
+  ❌ If DocA is wrong, everything is wrong
+
+HYBRID PACKING (recommended default):
+  Take top 2-3 chunks from top 2-3 documents.
+
+  [DocA: chunk1, chunk2] [DocB: chunk1, chunk2] [DocC: chunk1]
+
+  ✅ Balance of depth and breadth
+  ✅ Works for most query types
+  ❌ Needs careful token budget management
+```
+
+### Code — Context Packing
+
+```python
+"""
+Context packing strategies: breadth-first, depth-first, and hybrid.
+
+No external dependencies needed.
+"""
+
+from dataclasses import dataclass
+
+
+@dataclass
+class RankedChunk:
+    text: str
+    score: float
+    doc_id: str
+    chunk_index: int  # position within the source document
+
+
+def pack_breadth_first(
+    chunks: list[RankedChunk],
+    max_chunks: int = 5,
+) -> list[RankedChunk]:
+    """
+    Breadth-first: one chunk per document, highest-scoring first.
+    Maximizes source diversity.
+    """
+    seen_docs = set()
+    packed = []
+
+    for chunk in sorted(chunks, key=lambda c: c.score, reverse=True):
+        if chunk.doc_id not in seen_docs:
+            packed.append(chunk)
+            seen_docs.add(chunk.doc_id)
+        if len(packed) >= max_chunks:
+            break
+
+    return packed
+
+
+def pack_depth_first(
+    chunks: list[RankedChunk],
+    max_chunks: int = 5,
+) -> list[RankedChunk]:
+    """
+    Depth-first: multiple chunks from the top-ranked document.
+    Maximizes context coherence.
+    """
+    if not chunks:
+        return []
+
+    # Find the top-scoring document
+    best_doc = max(chunks, key=lambda c: c.score).doc_id
+
+    # Get all chunks from that document, in document order
+    doc_chunks = sorted(
+        [c for c in chunks if c.doc_id == best_doc],
+        key=lambda c: c.chunk_index,
+    )
+
+    return doc_chunks[:max_chunks]
+
+
+def pack_hybrid(
+    chunks: list[RankedChunk],
+    max_chunks: int = 5,
+    chunks_per_doc: int = 2,
+) -> list[RankedChunk]:
+    """
+    Hybrid: top N chunks from top M documents.
+    Balances depth and breadth.
+    """
+    from collections import defaultdict
+
+    # Group by document
+    doc_chunks: dict[str, list[RankedChunk]] = defaultdict(list)
+    for chunk in sorted(chunks, key=lambda c: c.score, reverse=True):
+        doc_chunks[chunk.doc_id].append(chunk)
+
+    # Rank documents by their best chunk score
+    doc_order = sorted(
+        doc_chunks.keys(),
+        key=lambda d: doc_chunks[d][0].score,
+        reverse=True,
+    )
+
+    packed = []
+    for doc_id in doc_order:
+        # Take top chunks_per_doc from this document, in document order
+        top = sorted(
+            doc_chunks[doc_id][:chunks_per_doc],
+            key=lambda c: c.chunk_index,
+        )
+        packed.extend(top)
+        if len(packed) >= max_chunks:
+            break
+
+    return packed[:max_chunks]
+
+
+# Example
+chunks = [
+    RankedChunk("RBAC controls API access", 0.95, "security_guide", 0),
+    RankedChunk("RBAC uses ClusterRole objects", 0.90, "security_guide", 1),
+    RankedChunk("Network policies restrict traffic", 0.88, "networking_guide", 0),
+    RankedChunk("Network policy selectors", 0.82, "networking_guide", 1),
+    RankedChunk("Pod security standards", 0.80, "security_guide", 3),
+    RankedChunk("Secrets management with Vault", 0.78, "secrets_guide", 0),
+]
+
+print("=== Breadth-first (diverse) ===")
+for c in pack_breadth_first(chunks, max_chunks=3):
+    print(f"  [{c.score:.2f}] {c.doc_id}: {c.text}")
+
+print("\n=== Depth-first (coherent) ===")
+for c in pack_depth_first(chunks, max_chunks=3):
+    print(f"  [{c.score:.2f}] {c.doc_id}: {c.text}")
+
+print("\n=== Hybrid (balanced) ===")
+for c in pack_hybrid(chunks, max_chunks=4, chunks_per_doc=2):
+    print(f"  [{c.score:.2f}] {c.doc_id}: {c.text}")
+```
+
+---
+
+## Part 3: Diversity vs Relevance — Formalized
+
+### When Redundancy Helps vs Hurts
+
+```
+WHEN REDUNDANCY HELPS:
+  ✅ Same fact stated in two different ways
+     → LLM synthesis is more confident and accurate
+  ✅ One doc is formal, another explains simply
+     → LLM blends both perspectives for a better answer
+  ✅ Multiple sources confirm the same answer
+     → Higher trust in the response
+
+WHEN REDUNDANCY HURTS:
+  ❌ Token budget is tight
+     → Identical info from 2 slots wastes 1 slot
+  ❌ Two "identical" docs have minor wording differences
+     → LLM hedges or picks the wrong version
+  ❌ Redundant chunks push out a unique relevant chunk
+     → Coverage drops
+
+DECISION FRAMEWORK:
+  ┌──────────────────────────────┬───────────────┬──────────────────┐
+  │ Query Type                   │ λ (MMR param) │ Packing Strategy │
+  ├──────────────────────────────┼───────────────┼──────────────────┤
+  │ Single-fact lookup           │ 0.8-0.9       │ Depth-first      │
+  │ "What is the API rate limit?"│ (relevance)   │                  │
+  ├──────────────────────────────┼───────────────┼──────────────────┤
+  │ Multi-faceted question       │ 0.5-0.6       │ Breadth-first    │
+  │ "What security features?"    │ (diversity)   │                  │
+  ├──────────────────────────────┼───────────────┼──────────────────┤
+  │ How-to / procedure           │ 0.7           │ Hybrid           │
+  │ "How to deploy on K8s?"      │ (balanced)    │                  │
+  └──────────────────────────────┴───────────────┴──────────────────┘
+```
+
+### Tuning λ Practically
+
+```
+HOW TO TUNE λ (not guesswork):
+
+  Step 1: Build a golden eval set with 50+ queries
+  Step 2: Run evaluation with λ = 0.5, 0.6, 0.7, 0.8, 0.9
+  Step 3: Measure context_precision (does the LLM get the right info?)
+  Step 4: Pick the λ that maximizes context_precision
+
+  Example results:
+    λ=0.5 → context_precision = 0.72  (too diverse, missed key info)
+    λ=0.6 → context_precision = 0.78
+    λ=0.7 → context_precision = 0.84  ← BEST for this dataset
+    λ=0.8 → context_precision = 0.82
+    λ=0.9 → context_precision = 0.79  (too redundant, wasted slots)
+
+  IMPORTANT: λ is dataset-specific. Always tune on YOUR data.
+  The "default 0.7" advice is a starting point, not a universal truth.
+```
+
+---
+
+## Part 4: Citation Alignment
 
 ### Why It Matters
 

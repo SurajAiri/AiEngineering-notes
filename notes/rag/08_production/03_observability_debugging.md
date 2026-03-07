@@ -382,6 +382,234 @@ class ABTestResults:
 
 ---
 
+## Source Attribution Tracking
+
+Source attribution goes beyond simple citation markers. It creates a **verifiable trace** from each claim in the answer back to the specific chunk that produced it — enabling audits, accuracy measurement, and trust.
+
+```
+WHAT SOURCE ATTRIBUTION TRACKING IS:
+
+  Standard citation:     "The rate limit is 1000/min [1]"
+  Source attribution:    "The rate limit is 1000/min"
+                           → chunk_id: policy_abc_chunk_004
+                           → source: api_policy.pdf
+                           → page: 3
+                           → confidence: 0.94
+                           → verifiable: YES (claim matches chunk content)
+
+  THE DIFFERENCE:
+    Citation = "I used source [1]"
+    Attribution = "This specific sentence came from this specific chunk,
+                   and here's the evidence that it actually does"
+
+  WHY IT MATTERS:
+    1. Audit trail: Regulators can verify AI-generated answers
+    2. Bug diagnosis: When an answer is wrong, you know WHICH source was at fault
+    3. Citation accuracy metric: What % of cited sources actually support the claim?
+    4. Trust: Users can click through and verify claims themselves
+```
+
+### Implementation
+
+```python
+"""
+Source attribution tracking: map each answer claim to its source chunk.
+
+Requirements: pip install openai
+"""
+
+import json
+from dataclasses import dataclass, field
+from openai import OpenAI
+
+
+@dataclass
+class Attribution:
+    """A single claim-to-source mapping."""
+    claim: str
+    chunk_id: str
+    source_doc: str
+    chunk_text_preview: str
+    confidence: float        # how well the claim matches the chunk
+    verified: bool           # does the chunk actually support the claim?
+    page: int | None = None  # page number if available
+
+
+@dataclass
+class AttributionTrace:
+    """Full attribution trace for one RAG query."""
+    query: str
+    answer: str
+    attributions: list[Attribution] = field(default_factory=list)
+
+    @property
+    def attribution_accuracy(self) -> float:
+        """Fraction of claims that are verifiably supported."""
+        if not self.attributions:
+            return 0.0
+        verified = sum(1 for a in self.attributions if a.verified)
+        return verified / len(self.attributions)
+
+    @property
+    def unattributed_claims(self) -> list[str]:
+        """Claims with no matching source (potential hallucinations)."""
+        return [a.claim for a in self.attributions if not a.verified]
+
+    def to_trace_entry(self) -> dict:
+        """Structured trace entry for logging."""
+        return {
+            "query": self.query,
+            "answer": self.answer,
+            "attribution_accuracy": round(self.attribution_accuracy, 3),
+            "attributions": [
+                {
+                    "claim": a.claim,
+                    "chunk_id": a.chunk_id,
+                    "source_doc": a.source_doc,
+                    "confidence": round(a.confidence, 3),
+                    "verified": a.verified,
+                }
+                for a in self.attributions
+            ],
+            "unattributed_claims": self.unattributed_claims,
+        }
+
+
+class AttributionTracker:
+    """Build attribution traces for RAG answers."""
+
+    def __init__(self, model: str = "gpt-4o-mini"):
+        self.llm = OpenAI()
+        self.model = model
+
+    def build_trace(
+        self,
+        query: str,
+        answer: str,
+        chunks: list[dict],  # [{"chunk_id": ..., "text": ..., "source": ..., "page": ...}]
+    ) -> AttributionTrace:
+        """
+        1. Decompose answer into claims
+        2. Match each claim to its source chunk
+        3. Verify the match
+        """
+        claims = self._extract_claims(answer)
+        attributions = []
+
+        for claim in claims:
+            best_match = self._find_source(claim, chunks)
+            attributions.append(best_match)
+
+        return AttributionTrace(
+            query=query,
+            answer=answer,
+            attributions=attributions,
+        )
+
+    def _extract_claims(self, answer: str) -> list[str]:
+        """Break the answer into individual factual claims."""
+        prompt = f"""Extract individual factual claims from this answer.
+Each claim should be one verifiable statement.
+
+Answer: {answer}
+
+Return JSON: {{"claims": ["claim1", "claim2", ...]}}"""
+
+        response = self.llm.chat.completions.create(
+            model=self.model,
+            messages=[{"role": "user", "content": prompt}],
+            response_format={"type": "json_object"},
+            temperature=0,
+        )
+        result = json.loads(response.choices[0].message.content)
+        return result.get("claims", [])
+
+    def _find_source(
+        self,
+        claim: str,
+        chunks: list[dict],
+    ) -> Attribution:
+        """Find which chunk (if any) supports this claim."""
+        chunk_summaries = "\n".join(
+            f"[{i}] {c['chunk_id']}: {c['text'][:200]}"
+            for i, c in enumerate(chunks)
+        )
+
+        prompt = f"""Does any of these chunks support the following claim?
+
+Claim: {claim}
+
+Chunks:
+{chunk_summaries}
+
+Return JSON: {{
+  "matched_index": <index or -1 if none>,
+  "confidence": <0.0-1.0>,
+  "verified": <true if chunk clearly supports claim, false otherwise>,
+  "explanation": "<brief reason>"
+}}"""
+
+        response = self.llm.chat.completions.create(
+            model=self.model,
+            messages=[{"role": "user", "content": prompt}],
+            response_format={"type": "json_object"},
+            temperature=0,
+        )
+        result = json.loads(response.choices[0].message.content)
+
+        idx = result.get("matched_index", -1)
+        if 0 <= idx < len(chunks):
+            chunk = chunks[idx]
+            return Attribution(
+                claim=claim,
+                chunk_id=chunk["chunk_id"],
+                source_doc=chunk.get("source", "unknown"),
+                chunk_text_preview=chunk["text"][:100],
+                confidence=result.get("confidence", 0.0),
+                verified=result.get("verified", False),
+                page=chunk.get("page"),
+            )
+        else:
+            return Attribution(
+                claim=claim,
+                chunk_id="NONE",
+                source_doc="NONE",
+                chunk_text_preview="",
+                confidence=0.0,
+                verified=False,
+            )
+
+
+# ─── Usage ───
+if __name__ == "__main__":
+    tracker = AttributionTracker()
+
+    trace = tracker.build_trace(
+        query="What is the refund policy?",
+        answer="Customers can request a refund within 30 days. Digital products are non-refundable.",
+        chunks=[
+            {
+                "chunk_id": "policy_chunk_4",
+                "text": "Refund policy: customers may request a full refund within 30 days of purchase.",
+                "source": "return_policy.pdf",
+                "page": 3,
+            },
+            {
+                "chunk_id": "policy_chunk_7",
+                "text": "Shipping information: orders are processed within 2 business days.",
+                "source": "shipping_guide.pdf",
+                "page": 1,
+            },
+        ],
+    )
+
+    print(f"Attribution accuracy: {trace.attribution_accuracy:.0%}")
+    print(f"Unattributed claims: {trace.unattributed_claims}")
+    print(json.dumps(trace.to_trace_entry(), indent=2))
+```
+
+---
+
 ## User Feedback Integration
 
 ```python

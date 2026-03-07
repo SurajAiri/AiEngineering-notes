@@ -398,6 +398,222 @@ print(tracker.regression_report())
 
 ---
 
+## Silent Degradation Detection
+
+Silent degradation is the **most dangerous** production RAG failure: no errors, no crashes, just gradually worse answers. Users stop trusting the system before engineers notice anything is wrong.
+
+```
+WHAT "SILENT" MEANS:
+
+  ❌ Not this: System throws errors, timeouts, crashes
+  ✅ This:     System returns answers. Answers look fine.
+               But week over week, answers get SUBTLY worse.
+
+  SIGNALS YOU MUST TRACK:
+
+  ┌──────────────────────────┬────────────────────────────┐
+  │ Signal                   │ What It Tells You          │
+  ├──────────────────────────┼────────────────────────────┤
+  │ Avg retrieval score      │ Index quality degrading    │
+  │ trending down            │ (HNSW graph decay, stale   │
+  │                          │ embeddings, content drift) │
+  ├──────────────────────────┼────────────────────────────┤
+  │ Abstention rate rising   │ System saying "I don't     │
+  │                          │ know" more often (could be │
+  │                          │ good OR coverage gap)      │
+  ├──────────────────────────┼────────────────────────────┤
+  │ Negative feedback rate   │ Users noticing bad answers │
+  │ increasing               │ before your metrics do     │
+  ├──────────────────────────┼────────────────────────────┤
+  │ Previously-green query   │ A category that was solid  │
+  │ categories going yellow  │ is now flaky (targeted     │
+  │                          │ content degradation)       │
+  └──────────────────────────┴────────────────────────────┘
+```
+
+### Multi-Signal Degradation Monitor
+
+```python
+"""
+Silent degradation detection: multi-signal monitoring for RAG quality.
+
+No external dependencies needed.
+"""
+
+from dataclasses import dataclass, field
+from datetime import datetime
+
+
+@dataclass
+class WeeklyMetrics:
+    """Weekly aggregate metrics for one RAG system."""
+    week_label: str  # e.g. "2025-W12"
+    avg_retrieval_score: float
+    abstention_rate: float  # fraction of queries where system refused
+    negative_feedback_rate: float  # fraction of thumbs_down
+    p95_latency_ms: float
+    total_queries: int
+    category_scores: dict[str, float] = field(default_factory=dict)
+    # e.g. {"api_docs": 0.85, "billing": 0.72, "onboarding": 0.91}
+
+
+@dataclass
+class DegradationAlert:
+    signal: str
+    severity: str  # "warning" or "critical"
+    message: str
+    current_value: float
+    previous_value: float
+
+
+class SilentDegradationMonitor:
+    """
+    Multi-signal monitor for RAG quality degradation.
+    Compares week-over-week metrics to detect slow decline.
+    """
+
+    def __init__(
+        self,
+        score_drop_warning: float = 0.03,     # 3% drop
+        score_drop_critical: float = 0.07,     # 7% drop
+        abstention_rise_warning: float = 0.05, # 5pp rise
+        feedback_drop_warning: float = 0.10,   # 10pp rise in negative
+        latency_rise_warning: float = 500,     # 500ms p95 increase
+    ):
+        self.thresholds = {
+            "score_drop_warning": score_drop_warning,
+            "score_drop_critical": score_drop_critical,
+            "abstention_rise_warning": abstention_rise_warning,
+            "feedback_drop_warning": feedback_drop_warning,
+            "latency_rise_warning": latency_rise_warning,
+        }
+
+    def check(
+        self,
+        current: WeeklyMetrics,
+        previous: WeeklyMetrics,
+    ) -> list[DegradationAlert]:
+        """
+        Compare two weeks of metrics and generate alerts.
+        """
+        alerts = []
+
+        # 1. Retrieval score drop
+        score_delta = previous.avg_retrieval_score - current.avg_retrieval_score
+        if score_delta > self.thresholds["score_drop_critical"]:
+            alerts.append(DegradationAlert(
+                signal="retrieval_score",
+                severity="critical",
+                message=f"Retrieval score dropped significantly: "
+                        f"{previous.avg_retrieval_score:.3f} → {current.avg_retrieval_score:.3f}",
+                current_value=current.avg_retrieval_score,
+                previous_value=previous.avg_retrieval_score,
+            ))
+        elif score_delta > self.thresholds["score_drop_warning"]:
+            alerts.append(DegradationAlert(
+                signal="retrieval_score",
+                severity="warning",
+                message=f"Retrieval score trending down: "
+                        f"{previous.avg_retrieval_score:.3f} → {current.avg_retrieval_score:.3f}",
+                current_value=current.avg_retrieval_score,
+                previous_value=previous.avg_retrieval_score,
+            ))
+
+        # 2. Abstention rate rising
+        abstention_delta = current.abstention_rate - previous.abstention_rate
+        if abstention_delta > self.thresholds["abstention_rise_warning"]:
+            alerts.append(DegradationAlert(
+                signal="abstention_rate",
+                severity="warning",
+                message=f"Abstention rate rising: "
+                        f"{previous.abstention_rate:.0%} → {current.abstention_rate:.0%}",
+                current_value=current.abstention_rate,
+                previous_value=previous.abstention_rate,
+            ))
+
+        # 3. Negative feedback rising
+        feedback_delta = current.negative_feedback_rate - previous.negative_feedback_rate
+        if feedback_delta > self.thresholds["feedback_drop_warning"]:
+            alerts.append(DegradationAlert(
+                signal="negative_feedback",
+                severity="critical",
+                message=f"Negative feedback spike: "
+                        f"{previous.negative_feedback_rate:.0%} → {current.negative_feedback_rate:.0%}",
+                current_value=current.negative_feedback_rate,
+                previous_value=previous.negative_feedback_rate,
+            ))
+
+        # 4. Latency creep
+        latency_delta = current.p95_latency_ms - previous.p95_latency_ms
+        if latency_delta > self.thresholds["latency_rise_warning"]:
+            alerts.append(DegradationAlert(
+                signal="p95_latency",
+                severity="warning",
+                message=f"p95 latency increasing: "
+                        f"{previous.p95_latency_ms:.0f}ms → {current.p95_latency_ms:.0f}ms",
+                current_value=current.p95_latency_ms,
+                previous_value=previous.p95_latency_ms,
+            ))
+
+        # 5. Category-level regression
+        for category in current.category_scores:
+            if category in previous.category_scores:
+                cat_delta = (
+                    previous.category_scores[category]
+                    - current.category_scores[category]
+                )
+                if cat_delta > self.thresholds["score_drop_warning"]:
+                    alerts.append(DegradationAlert(
+                        signal=f"category:{category}",
+                        severity="warning",
+                        message=f"Category '{category}' degrading: "
+                                f"{previous.category_scores[category]:.3f} → "
+                                f"{current.category_scores[category]:.3f}",
+                        current_value=current.category_scores[category],
+                        previous_value=previous.category_scores[category],
+                    ))
+
+        return alerts
+
+
+# ─── Usage ───
+monitor = SilentDegradationMonitor()
+
+last_week = WeeklyMetrics(
+    week_label="2025-W11",
+    avg_retrieval_score=0.82,
+    abstention_rate=0.05,
+    negative_feedback_rate=0.08,
+    p95_latency_ms=1800,
+    total_queries=5000,
+    category_scores={"api_docs": 0.88, "billing": 0.79, "onboarding": 0.91},
+)
+
+this_week = WeeklyMetrics(
+    week_label="2025-W12",
+    avg_retrieval_score=0.77,   # dropped
+    abstention_rate=0.12,       # rose
+    negative_feedback_rate=0.12,
+    p95_latency_ms=2100,
+    total_queries=4800,
+    category_scores={"api_docs": 0.85, "billing": 0.65, "onboarding": 0.90},
+    #                                     ↑ billing dropped significantly
+)
+
+alerts = monitor.check(this_week, last_week)
+for alert in alerts:
+    icon = "🔴" if alert.severity == "critical" else "🟡"
+    print(f"  {icon} [{alert.signal}] {alert.message}")
+
+# Output:
+#   🔴 [retrieval_score] Retrieval score dropped significantly: 0.820 → 0.770
+#   🟡 [abstention_rate] Abstention rate rising: 5% → 12%
+#   🟡 [p95_latency] p95 latency increasing: 1800ms → 2100ms
+#   🟡 [category:billing] Category 'billing' degrading: 0.790 → 0.650
+```
+
+---
+
 ## Pitfalls & Common Mistakes
 
 | Mistake                          | Impact                                      | Fix                                             |
