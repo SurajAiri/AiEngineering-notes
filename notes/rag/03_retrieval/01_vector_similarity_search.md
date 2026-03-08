@@ -356,3 +356,77 @@ The math is the same, just harder to visualize.
 3. **Flat index for small datasets** (<100K vectors), HNSW for larger ones.
 4. **Same embedding model for indexing and querying** — this is non-negotiable.
 5. **k is a tuning parameter** — start at 5, increase if recall is low, decrease if precision is low.
+
+---
+
+## Popular Libraries
+
+| Library               | Best For                        | Install                             |
+| --------------------- | ------------------------------- | ----------------------------------- |
+| FAISS                 | High-performance local search   | `pip install faiss-cpu`             |
+| sentence-transformers | Embedding generation            | `pip install sentence-transformers` |
+| ChromaDB              | Simple vector store + retrieval | `pip install chromadb`              |
+| Pinecone              | Managed cloud vector DB         | `pip install pinecone-client`       |
+| Qdrant                | Self-hosted / cloud vector DB   | `pip install qdrant-client`         |
+
+### Quick Example — FAISS + sentence-transformers
+
+```python
+import faiss
+import numpy as np
+from sentence_transformers import SentenceTransformer
+
+model = SentenceTransformer("all-MiniLM-L6-v2")
+
+# Index documents
+docs = ["Python is a programming language", "RAG uses retrieval for generation", "FAISS enables fast similarity search"]
+doc_embeddings = model.encode(docs)
+
+# Create FAISS index
+dim = doc_embeddings.shape[1]  # 384 for MiniLM
+index = faiss.IndexFlatIP(dim)  # Inner product (use IndexFlatL2 for L2 distance)
+faiss.normalize_L2(doc_embeddings)  # Normalize for cosine similarity
+index.add(doc_embeddings)
+
+# Query
+query = "What is retrieval augmented generation?"
+query_emb = model.encode([query])
+faiss.normalize_L2(query_emb)
+
+scores, indices = index.search(query_emb, k=2)  # Top 2 results
+for score, idx in zip(scores[0], indices[0]):
+    print(f"Score: {score:.3f} | {docs[idx]}")
+```
+
+### Quick Example — ChromaDB (Simplest Getting Started)
+
+```python
+import chromadb
+
+client = chromadb.Client()
+collection = client.create_collection("my_docs")
+
+collection.add(
+    documents=["Python is great", "RAG uses retrieval", "FAISS is fast"],
+    ids=["doc1", "doc2", "doc3"],
+)
+
+results = collection.query(query_texts=["What is RAG?"], n_results=2)
+print(results["documents"])
+```
+
+---
+
+## Common Questions
+
+### Q: FAISS vs ChromaDB vs Pinecone — which should I use?
+
+**A:** **ChromaDB** to prototype fast (5 min setup, in-memory). **FAISS** for production local search (fast, battle-tested, handles millions of vectors). **Pinecone/Qdrant** for managed production (auto-scaling, no infra management). Start with ChromaDB, graduate to FAISS or a managed DB.
+
+### Q: How many vectors can I store in memory?
+
+**A:** A 384-dim float32 vector = 1.5 KB. So 1M vectors ≈ 1.5 GB RAM. For 1536-dim (OpenAI) = 6 GB for 1M vectors. If you exceed RAM, use disk-backed indexes (FAISS IVF) or a vector database.
+
+### Q: Do I need to re-embed everything if I switch embedding models?
+
+**A:** Yes. Vectors from different models live in different spaces and are **not compatible**. If you switch from MiniLM to OpenAI embeddings, you must re-embed all documents. This is why choosing your embedding model early matters.

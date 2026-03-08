@@ -434,3 +434,45 @@ def evaluation_report(
 5. **Evaluate at multiple k** — Recall@5 vs Recall@10 shows retrieval depth.
 6. **Track per-difficulty** — aggregate scores can hide failures on hard queries.
 7. **The sweet spot for k is usually 5-10** — balance recall vs noise.
+
+---
+
+## Popular Libraries
+
+### Quick Example — RAGAS Retrieval Metrics
+
+```python
+from ragas import evaluate
+from ragas.metrics import context_precision, context_recall
+from ragas import EvaluationDataset
+
+# Prepare your evaluation data
+eval_data = EvaluationDataset.from_list([
+    {
+        "user_input": "What is photosynthesis?",
+        "retrieved_contexts": ["Photosynthesis converts sunlight to energy..."],
+        "reference": "Photosynthesis is the process by which plants convert light into chemical energy.",
+        "response": "Photosynthesis is how plants use sunlight to make food.",
+    },
+    # ... more examples
+])
+
+# Evaluate retrieval quality
+results = evaluate(
+    dataset=eval_data,
+    metrics=[context_precision, context_recall],
+)
+print(results)  # {'context_precision': 0.85, 'context_recall': 0.92}
+```
+
+---
+
+## Common Questions
+
+### Q: Which retrieval metric should I prioritize?
+
+**A:** **Recall@k** is the most important for RAG. If relevant documents don't appear in your top-k results, the LLM can't generate a correct answer no matter how good it is. After recall is acceptable (>0.8), optimize for **nDCG** (ranking quality) to reduce noise in the context window.
+
+### Q: What's a good Recall@5 score?
+
+**A:** >0.85 for production systems. <0.7 means your retrieval is actively hurting answer quality. Between 0.7-0.85, you should be investigating failure cases and adding hybrid search, query rewriting, or better embeddings.

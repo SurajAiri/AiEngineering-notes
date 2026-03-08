@@ -367,3 +367,64 @@ Small chunks (100-200 tokens)         Large chunks (500-1000 tokens)
 3. **Respect sentence boundaries** — a split sentence is worse than a slightly oversized chunk.
 4. **Add overlap** — 10-20% overlap prevents context loss at boundaries.
 5. **Test with real queries** — the "right" chunk size depends on your question types and data.
+
+---
+
+## Popular Libraries
+
+| Library                  | Purpose                       | Install                                |
+| ------------------------ | ----------------------------- | -------------------------------------- |
+| LangChain text_splitters | Most popular chunking library | `pip install langchain-text-splitters` |
+| LlamaIndex node_parser   | Framework-native chunking     | `pip install llama-index`              |
+| tiktoken                 | OpenAI token counting         | `pip install tiktoken`                 |
+
+### Quick Example — LangChain RecursiveCharacterTextSplitter
+
+```python
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+# The most commonly used splitter in production RAG
+splitter = RecursiveCharacterTextSplitter(
+    chunk_size=500,        # Max characters per chunk
+    chunk_overlap=50,      # Overlap between chunks
+    separators=["\n\n", "\n", ". ", " ", ""],  # Split priority: paragraphs > lines > sentences
+    length_function=len,   # Can swap to token-based: use tiktoken
+)
+
+text = "Your long document text here..."
+chunks = splitter.split_text(text)
+print(f"Created {len(chunks)} chunks, avg size: {sum(len(c) for c in chunks) / len(chunks):.0f} chars")
+```
+
+### Token-Based Sizing with tiktoken
+
+```python
+import tiktoken
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+# Use token count instead of character count
+enc = tiktoken.encoding_for_model("gpt-4")
+splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
+    encoding_name="cl100k_base",
+    chunk_size=256,      # 256 tokens
+    chunk_overlap=30,    # 30 token overlap
+)
+
+chunks = splitter.split_text(text)
+```
+
+---
+
+## Common Questions
+
+### Q: What chunk size should I start with?
+
+**A:** Start with **256-512 tokens** with 10-20% overlap. This works well for most Q&A use cases. If your questions need more context (e.g., summarization), go larger (512-1024). If you need precise answers (e.g., "what is the price of X?"), go smaller (128-256).
+
+### Q: Characters vs tokens — why does it matter?
+
+**A:** Embedding models and LLMs operate on **tokens**, not characters. The word "tokenization" is 1 word, 14 characters, but ~3 tokens. A chunk of 500 characters might be 100-150 tokens — well under your embedding model's capacity. Always measure in tokens to use your model's full capacity.
+
+### Q: Why RecursiveCharacterTextSplitter over CharacterTextSplitter?
+
+**A:** `RecursiveCharacterTextSplitter` tries multiple separators in order (paragraphs → lines → sentences → words → characters). This means it produces more semantically coherent chunks. `CharacterTextSplitter` only splits on a single separator. Always use Recursive.

@@ -584,3 +584,57 @@ Best for:           Uniform text            Multi-topic documents
 3. **Always enforce size limits** — semantic coherence doesn't guarantee reasonable chunk sizes.
 4. **Buffered embeddings** (embedding sentence + neighbors) produce smoother similarity curves.
 5. **It's more expensive** than fixed-size — only use it when quality justifies the cost.
+
+---
+
+## Popular Libraries
+
+### LangChain SemanticChunker
+
+```python
+from langchain_experimental.text_splitter import SemanticChunker
+from langchain_openai import OpenAIEmbeddings
+
+# Percentile-based breakpoint detection
+chunker = SemanticChunker(
+    OpenAIEmbeddings(),
+    breakpoint_threshold_type="percentile",  # or "standard_deviation", "interquartile"
+    breakpoint_threshold_amount=95,           # Split at top 5% similarity drops
+)
+
+chunks = chunker.split_text(long_document_text)
+print(f"{len(chunks)} semantic chunks")
+for i, chunk in enumerate(chunks[:3]):
+    print(f"Chunk {i}: {len(chunk)} chars — {chunk[:80]}...")
+```
+
+### LlamaIndex SemanticSplitterNodeParser
+
+```python
+from llama_index.core.node_parser import SemanticSplitterNodeParser
+from llama_index.embeddings.openai import OpenAIEmbedding
+
+splitter = SemanticSplitterNodeParser(
+    buffer_size=1,            # Sentences to include as context buffer
+    breakpoint_percentile_threshold=95,
+    embed_model=OpenAIEmbedding(),
+)
+
+nodes = splitter.get_nodes_from_documents(documents)
+```
+
+---
+
+## Common Questions
+
+### Q: When should I use semantic chunking vs fixed-size?
+
+**A:** Use semantic chunking when your documents cover **multiple topics** and you notice fixed-size chunks are mixing unrelated content. Stick with fixed-size for homogeneous documents (e.g., product specs that all follow the same template) or when you're prototyping.
+
+### Q: Is semantic chunking worth the extra cost?
+
+**A:** It depends on your data. For documents where topics shift unpredictably (meeting transcripts, research papers, long articles), semantic chunking often improves retrieval quality by 10-20%. For uniform documents, the improvement is negligible. Run an A/B test on your actual queries.
+
+### Q: Can I combine semantic chunking with size limits?
+
+**A:** Yes, and you should. Semantic chunking can produce very large or very small chunks. Always enforce min/max size limits. If a semantic chunk exceeds your max, split it with fixed-size as a fallback.

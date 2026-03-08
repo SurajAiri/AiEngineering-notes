@@ -526,3 +526,67 @@ def validate_extraction_completeness(
 4. **Tables need special handling** — generic parsers usually destroy table structure.
 5. **Log extraction quality** — you need to know which documents need reprocessing.
 6. **You don't need to build parsers** — but you must know when they fail and have a recovery plan.
+
+---
+
+## Popular Libraries
+
+| Library      | Best For                          | Install                    |
+| ------------ | --------------------------------- | -------------------------- |
+| PyMuPDF      | Fast PDF text + layout extraction | `pip install pymupdf`      |
+| LlamaParse   | LLM-powered complex doc parsing   | Via LlamaIndex Cloud API   |
+| Unstructured | Multi-format auto-detection       | `pip install unstructured` |
+| pdfplumber   | PDF tables extraction             | `pip install pdfplumber`   |
+| Tesseract    | OCR for scanned documents         | `brew install tesseract`   |
+
+### Quick Example — PyMuPDF (fitz)
+
+```python
+import fitz  # pip install pymupdf
+
+def extract_pdf_with_quality_check(path: str) -> list[dict]:
+    doc = fitz.open(path)
+    pages = []
+    for page in doc:
+        text = page.get_text()
+        # Basic quality check
+        if len(text.strip()) < 20:
+            print(f"Warning: Page {page.number} has very little text (possible scan)")
+        pages.append({"page": page.number, "text": text, "char_count": len(text)})
+    return pages
+
+pages = extract_pdf_with_quality_check("report.pdf")
+```
+
+### Quick Example — LlamaParse (for complex documents)
+
+```python
+from llama_parse import LlamaParse
+
+parser = LlamaParse(
+    result_type="markdown",  # Get clean markdown output
+    num_workers=4,
+    verbose=True,
+)
+
+# Handles tables, images, complex layouts
+documents = parser.load_data("complex_report.pdf")
+for doc in documents:
+    print(doc.text[:200])
+```
+
+---
+
+## Common Questions
+
+### Q: Which parser should I start with?
+
+**A:** Start with **PyMuPDF** — it's fast, free, and handles most PDFs well. If you encounter scanned docs or complex tables, add **LlamaParse** as a fallback. Build a quality-score router that automatically escalates to the better (more expensive) parser when the cheap one fails.
+
+### Q: How do I handle scanned PDFs vs native PDFs?
+
+**A:** Check if the PDF has selectable text (native) or is an image scan. PyMuPDF's `page.get_text()` returns empty/garbage for scans. If text is < 50 chars per page, route to OCR (Tesseract) or LlamaParse.
+
+### Q: Should I extract tables as text or structured data?
+
+**A:** Extract tables as **structured data** (CSV/markdown format) whenever possible. Flattening a table to plain text destroys the row/column relationships. Use `pdfplumber` for simple tables or LlamaParse for complex ones.

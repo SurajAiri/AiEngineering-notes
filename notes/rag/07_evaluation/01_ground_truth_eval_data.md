@@ -390,3 +390,47 @@ class TemporalEvalSet:
 4. **Include unanswerable queries** — test that the system knows when to say "I don't know."
 5. **Auto-generate, then review** — LLMs can bootstrap eval sets, but humans must validate.
 6. **Version your eval sets** — tie them to document versions for tracking regressions.
+
+---
+
+## Popular Libraries
+
+| Library   | Purpose                                | Install                |
+| --------- | -------------------------------------- | ---------------------- |
+| RAGAS     | Auto-generate eval test sets from docs | `pip install ragas`    |
+| DeepEval  | Test-case generation + evaluation      | `pip install deepeval` |
+| LangSmith | Manual annotation + dataset management | Via LangChain Cloud    |
+
+### Quick Example — Generate Test Set with RAGAS
+
+```python
+from ragas.testset import TestsetGenerator
+from ragas.llms import LangchainLLMWrapper
+from langchain_openai import ChatOpenAI
+
+generator_llm = LangchainLLMWrapper(ChatOpenAI(model="gpt-4o-mini"))
+
+# Generate eval questions from your documents
+generator = TestsetGenerator(llm=generator_llm)
+testset = generator.generate_with_langchain_docs(
+    documents=your_langchain_docs,  # Your loaded documents
+    testset_size=50,
+)
+
+# Each test case has: question, ground_truth, contexts, metadata
+df = testset.to_pandas()
+print(df[["question", "ground_truth"]].head())
+df.to_csv("eval_set.csv", index=False)  # Save for reuse
+```
+
+---
+
+## Common Questions
+
+### Q: How many eval examples do I need?
+
+**A:** **50 minimum** for rough signal, **200+** for reliable metrics. Stratify: ~30% easy (direct lookup), ~40% medium (synthesis across 2-3 chunks), ~20% hard (reasoning required), ~10% unanswerable. Quality matters more than quantity — 50 well-crafted examples > 500 auto-generated ones reviewed by nobody.
+
+### Q: Can I fully automate eval set creation?
+
+**A:** You can **bootstrap** with LLMs (RAGAS or GPT-4 to generate question/answer pairs from your docs), but you MUST have a human review pass. LLM-generated questions tend to be simpler than real user questions and may miss edge cases. Use auto-generation for the initial set, then supplement with real user queries from production logs.

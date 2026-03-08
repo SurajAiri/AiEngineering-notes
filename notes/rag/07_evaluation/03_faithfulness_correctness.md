@@ -507,3 +507,44 @@ def aggregate_rag_eval(results: list[RAGEvalResult]) -> dict:
 4. **Claim decomposition** is the best approach for faithfulness — break answer into claims, verify each.
 5. **Test refusal** — a system that always answers is dangerous; it should say "I don't know" when appropriate.
 6. **Partial credit matters** — most answers aren't fully right or fully wrong.
+
+---
+
+## Popular Libraries
+
+### Quick Example — RAGAS Faithfulness + Answer Correctness
+
+```python
+from ragas import evaluate
+from ragas.metrics import faithfulness, answer_correctness
+from ragas import EvaluationDataset
+
+eval_data = EvaluationDataset.from_list([
+    {
+        "user_input": "When was Python created?",
+        "retrieved_contexts": ["Python was created by Guido van Rossum and first released in 1991."],
+        "response": "Python was created in 1991 by Guido van Rossum.",
+        "reference": "Python was first released in 1991.",
+    },
+])
+
+results = evaluate(
+    dataset=eval_data,
+    metrics=[faithfulness, answer_correctness],
+)
+print(results)
+# faithfulness: 1.0 (every claim grounded in context)
+# answer_correctness: 0.95 (matches ground truth)
+```
+
+---
+
+## Common Questions
+
+### Q: How do I detect hallucinations in RAG answers?
+
+**A:** Measure **faithfulness** — decompose the answer into individual claims, then check if each claim is supported by the retrieved context. If a claim has no supporting evidence in the context, it's likely hallucinated. RAGAS automates this with LLM-as-judge.
+
+### Q: Should I use GPT-4 to evaluate GPT-4 outputs?
+
+**A:** Ideally use a **stronger or different** model for evaluation. If you're generating answers with GPT-4o-mini, evaluate faithfulness with GPT-4o. Same-model evaluation has known bias (models tend to rate their own outputs higher). For high-stakes applications, include human evaluation on a sample.

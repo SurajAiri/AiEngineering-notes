@@ -271,3 +271,76 @@ Production recommendation:
 3. **The pattern: bi-encoder → top 50-100 → cross-encoder → top 5** is the production standard.
 4. **Start with `ms-marco-MiniLM-L-6-v2`** — it's fast and free.
 5. **Re-ranking typically adds 50-200ms** — budget for it in your latency SLA.
+
+---
+
+## Popular Libraries
+
+| Library               | Best For                    | Install                             |
+| --------------------- | --------------------------- | ----------------------------------- |
+| sentence-transformers | Free local cross-encoders   | `pip install sentence-transformers` |
+| Cohere Rerank         | Best quality, API-based     | `pip install cohere`                |
+| FlashRank             | Lightweight, fast reranking | `pip install flashrank`             |
+| RAGatouille / ColBERT | Late interaction reranking  | `pip install ragatouille`           |
+
+### Quick Example — sentence-transformers CrossEncoder
+
+```python
+from sentence_transformers import CrossEncoder
+
+# Load a free, open-source reranking model
+reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
+
+query = "How does photosynthesis work?"
+
+# These are your top-k results from retrieval (bi-encoder or hybrid)
+retrieved_docs = [
+    "Photosynthesis converts sunlight into chemical energy in plants.",
+    "The stock market experienced significant growth in Q3.",
+    "Chloroplasts in plant cells capture light energy for photosynthesis.",
+    "Solar panels convert sunlight into electrical energy.",
+]
+
+# Cross-encoder scores each (query, doc) pair
+pairs = [[query, doc] for doc in retrieved_docs]
+scores = reranker.predict(pairs)
+
+# Sort by score
+ranked = sorted(zip(scores, retrieved_docs), reverse=True)
+for score, doc in ranked:
+    print(f"Score: {score:.3f} | {doc[:60]}...")
+```
+
+### Quick Example — Cohere Rerank API
+
+```python
+import cohere
+
+co = cohere.ClientV2()  # Uses COHERE_API_KEY env var
+
+results = co.rerank(
+    model="rerank-v3.5",
+    query="How does photosynthesis work?",
+    documents=retrieved_docs,
+    top_n=3,
+)
+
+for r in results.results:
+    print(f"Score: {r.relevance_score:.3f} | Doc index: {r.index}")
+```
+
+---
+
+## Common Questions
+
+### Q: Is Cohere Rerank worth paying for vs free models?
+
+**A:** Cohere Rerank is consistently the best-quality reranker in benchmarks, but `ms-marco-MiniLM-L-6-v2` is surprisingly close (within 5-10%) for most practical use cases. Start free, upgrade to Cohere if you need that extra quality edge or if you're dealing with multi-lingual content.
+
+### Q: How many documents should I rerank?
+
+**A:** **20-100** is the sweet spot. Retrieve 50-100 candidates with a fast bi-encoder, then rerank to get the top 3-5. Reranking fewer than 20 wastes the reranker's ability to discriminate. Reranking more than 100 gets slow without significant quality gains.
+
+### Q: Can I skip reranking?
+
+**A:** You can, but you'll likely see 10-30% lower answer quality. The bi-encoder scores are rough estimates; the cross-encoder provides much more accurate relevance judgments. Skip it only if latency is extremely tight (<100ms total) or your retrieval quality is already very high.

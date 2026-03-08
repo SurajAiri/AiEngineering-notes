@@ -452,3 +452,50 @@ Cons:                                               Cons:
 3. **Domain-specific cleaning** beats one-size-fits-all every time.
 4. **Preserve structure** — headings, lists, and formatting carry meaning.
 5. **Test cleaning with retrieval** — verify that cleaned text still retrieves correctly for your queries.
+
+---
+
+## Popular Libraries for Data Cleaning
+
+| Library        | Purpose                               | Install                      |
+| -------------- | ------------------------------------- | ---------------------------- |
+| Unstructured   | Multi-format parsing + cleaning       | `pip install unstructured`   |
+| LlamaParse     | LLM-powered document parsing          | Via LlamaIndex cloud         |
+| PyMuPDF (fitz) | Fast PDF text extraction              | `pip install pymupdf`        |
+| ftfy           | Fix Unicode/encoding issues           | `pip install ftfy`           |
+| cleantext      | General text cleaning                 | `pip install clean-text`     |
+| BeautifulSoup  | HTML tag removal and scraping cleanup | `pip install beautifulsoup4` |
+
+### Quick Example — Unstructured Library
+
+```python
+"""
+Using the 'unstructured' library for document parsing + cleaning.
+Requirements: pip install unstructured
+"""
+
+from unstructured.partition.auto import partition
+
+# Auto-detect file type and extract text
+elements = partition(filename="docs/policy.pdf")
+
+# Each element has type (Title, NarrativeText, Table, etc.) + metadata
+for el in elements[:5]:
+    print(f"Type: {type(el).__name__}, Text: {str(el)[:80]}...")
+```
+
+---
+
+## Common Questions
+
+### Q: Should I clean data manually or use a library?
+
+**A:** Use a library for the heavy lifting (parsing, encoding fixes), then add domain-specific rules on top. Don't write a PDF parser from scratch — use PyMuPDF or Unstructured. But DO write custom rules for things like removing your company's boilerplate headers.
+
+### Q: How do I know if my data is "clean enough"?
+
+**A:** Run a few test queries through your RAG pipeline and check the retrieved chunks. If chunks contain noise (boilerplate, broken formatting, repeated headers), your cleaning isn't sufficient. The noise ratio metric in the production code above is a good automated check.
+
+### Q: Does cleaning matter if I'm using a powerful LLM like GPT-4?
+
+**A:** Yes. Cleaning matters MORE for the **embedding** step than the LLM step. GPT-4 might work around noisy context, but noisy text produces bad embeddings, which means the wrong chunks get retrieved in the first place. The LLM can only work with what retrieval gives it.

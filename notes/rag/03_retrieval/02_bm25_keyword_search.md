@@ -331,3 +331,57 @@ Controls document length normalization.
 3. **Complements vector search perfectly** — what one misses, the other catches.
 4. **Tune k₁ and b** for your chunk sizes — defaults work for most cases.
 5. **In production**, always pair BM25 with vector search in a hybrid setup.
+
+---
+
+## Popular Libraries
+
+| Library                 | Purpose                 | Install                           |
+| ----------------------- | ----------------------- | --------------------------------- |
+| rank_bm25               | Pure Python BM25 scorer | `pip install rank_bm25`           |
+| Elasticsearch           | Full-text search engine | Docker / managed service          |
+| LangChain BM25Retriever | Framework integration   | `pip install langchain-community` |
+
+### Quick Example — rank_bm25
+
+```python
+from rank_bm25 import BM25Okapi
+
+# Tokenize documents (simple whitespace split; use a proper tokenizer in production)
+corpus = [
+    "python programming language syntax",
+    "retrieval augmented generation pipeline",
+    "BM25 keyword matching algorithm",
+    "error code ERR_CONNECTION_REFUSED",
+]
+tokenized_corpus = [doc.lower().split() for doc in corpus]
+
+# Build BM25 index
+bm25 = BM25Okapi(tokenized_corpus)
+
+# Query
+query = "error code connection"
+tokenized_query = query.lower().split()
+scores = bm25.get_scores(tokenized_query)
+
+# Get top results
+for idx in scores.argsort()[::-1][:2]:
+    print(f"Score: {scores[idx]:.2f} | {corpus[idx]}")
+# Output: "error code ERR_CONNECTION_REFUSED" scores highest (exact keyword match)
+```
+
+---
+
+## Common Questions
+
+### Q: When does BM25 beat vector search?
+
+**A:** When the query contains **exact terms** that must match: product IDs ("SKU-12345"), error codes ("ERR_404"), config keys ("max_retries"), proper nouns ("LangChain"), or acronyms ("HNSW"). Vector search might match semantically similar but wrong items.
+
+### Q: Do I need Elasticsearch for BM25?
+
+**A:** No. For small-medium datasets (<1M docs), `rank_bm25` in Python is fast enough. Use Elasticsearch when you need: full-text search features (fuzzy matching, query DSL), scalability across machines, or real-time indexing.
+
+### Q: How does hybrid search combine BM25 + vector scores?
+
+**A:** The most common approach is **Reciprocal Rank Fusion (RRF)**: take the top results from both BM25 and vector search, combine their rank positions with the formula `1/(k + rank)`, and return the highest fused scores. See the hybrid retrieval note for details.

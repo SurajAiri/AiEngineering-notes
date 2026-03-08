@@ -596,6 +596,67 @@ Example:            Same PDF uploaded twice      Two docs sharing an
 
 **Do both when possible** — document-level dedup first (cheaper), then optionally chunk-level dedup.
 
+## Framework & Library Support
+
+Most RAG frameworks provide **partial** deduplication support at best. None automate all three levels out of the box.
+
+### LlamaIndex — Best Built-in Support
+
+LlamaIndex's `IngestionPipeline` handles **exact deduplication automatically** when a docstore is attached. It maintains a `doc_id → document_hash` map and skips documents whose hash hasn't changed since last ingestion.
+
+```python
+from llama_index.core.ingestion import IngestionPipeline
+from llama_index.core.storage.docstore import SimpleDocumentStore
+from llama_index.core.node_parser import SentenceSplitter
+
+pipeline = IngestionPipeline(
+    transformations=[
+        SentenceSplitter(),
+        # your embedding model here
+    ],
+    docstore=SimpleDocumentStore(),  # enables automatic exact dedup
+)
+
+# Handles dedup automatically — re-run safely on same docs
+nodes = pipeline.run(documents=documents)
+```
+
+Three deduplication strategies are available via `docstore_strategy`:
+
+| Strategy             | Behavior                                     |
+| -------------------- | -------------------------------------------- |
+| `duplicates_only`    | Skip docs with unchanged hash (default)      |
+| `upserts`            | Re-process docs whose hash changed           |
+| `upserts_and_delete` | Re-process changed docs, delete removed ones |
+
+**What it catches:** Level 1 (exact) only. Near-duplicate and semantic dedup still require custom implementation.
+
+---
+
+### LangChain — No Built-in Dedup
+
+LangChain has no deduplication at the ingestion level. It delegates entirely to the underlying vector store's upsert logic, which is typically ID-based, not content-based.
+
+If you're using LangChain, you need to run your own dedup pass before calling `vectorstore.add_documents()`.
+
+---
+
+### Haystack — Manual, but Composable
+
+Haystack has no built-in dedup component, but its pipeline architecture makes it easy to insert a custom dedup step as a `Component` between the file converter and the document store.
+
+---
+
+### Summary
+
+| Framework  | Level 1 (Exact) | Level 2 (Near-dup) | Level 3 (Semantic) |
+| ---------- | --------------- | ------------------ | ------------------ |
+| LlamaIndex | ✅ Built-in     | ❌ Manual          | ❌ Manual          |
+| LangChain  | ❌ Manual       | ❌ Manual          | ❌ Manual          |
+| Haystack   | ❌ Manual       | ❌ Manual          | ❌ Manual          |
+
+**Bottom line:** Use LlamaIndex's `IngestionPipeline` to get Level 1 for free, but regardless of framework, Levels 2 and 3 require the MinHash and embedding approaches described above. Run them as a **pre-processing step before handing documents to any framework**.
+
 ---
 
 ## Pitfalls & Common Mistakes
