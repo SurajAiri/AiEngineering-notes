@@ -8,9 +8,11 @@ Most RAG failures are **silent** — the system returns an answer that looks pla
 
 ## Files
 
-| #   | File                                                 | Topic                   | Key Concepts                                                                                                                                                                                                                    |
-| --- | ---------------------------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 01  | [01_rag_failure_modes.md](./01_rag_failure_modes.md) | All 6 RAG Failure Modes | Over-retrieval hallucination, missing context hallucination, retrieval noise amplification, stale data errors, chunk boundary hallucinations, authority inversion — with detection signals, prevention code, and summary matrix |
+| #   | File                                                                     | Topic                         | Key Concepts                                                                                                                                                                                                                    |
+| --- | ------------------------------------------------------------------------ | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 01  | [01_rag_failure_modes.md](./01_rag_failure_modes.md)                     | All 6 RAG Failure Modes       | Over-retrieval hallucination, missing context hallucination, retrieval noise amplification, stale data errors, chunk boundary hallucinations, authority inversion — with detection signals, prevention code, and summary matrix |
+| 02  | [02_rag_debugging_checklist.md](./02_rag_debugging_checklist.md)         | RAG Debugging Checklist       | 6-step diagnostic pipeline: Data → Chunking → Retrieval → Re-ranking → Context → Generation, automated diagnosis script                                                                                                         |
+| 03  | [03_guardrails_prompt_injection.md](./03_guardrails_prompt_injection.md) | Guardrails & Prompt Injection | Input/output/context sanitization, NeMo Guardrails, LlamaGuard, Presidio PII detection, production guardrails pipeline                                                                                                          |
 
 ## The 6 Failure Modes at a Glance
 

@@ -21,6 +21,8 @@ Ground truth data (what correct looks like)
 | 01  | [01_ground_truth_eval_data.md](./01_ground_truth_eval_data.md)     | Ground Truth & Evaluation Data | Golden query sets, document-answer alignment, query difficulty stratification, temporal evaluation sets, synthetic eval data generation  |
 | 02  | [02_retrieval_evaluation.md](./02_retrieval_evaluation.md)         | Retrieval Evaluation           | Recall@k, MRR, nDCG, coverage vs precision tradeoffs, hybrid retrieval attribution, evaluation reporting                                 |
 | 03  | [03_faithfulness_correctness.md](./03_faithfulness_correctness.md) | Faithfulness & Correctness     | Claim decomposition, context-only answering, answer-context attribution, citation accuracy, refusal evaluation, partial answer detection |
+| 04  | [04_evaluation_frameworks.md](./04_evaluation_frameworks.md)       | Evaluation Frameworks          | RAGAS, DeepEval, LangSmith, LangFuse, Arize Phoenix — setup, metrics, combining frameworks                                               |
+| 05  | [05_automated_eval_pipeline.md](./05_automated_eval_pipeline.md)   | Automated Eval Pipeline        | CI/CD integration, golden test sets, regression detection, GitHub Actions, DeepEval pytest                                               |
 
 ## Popular Libraries
 

@@ -26,6 +26,7 @@ Raw Document → Extract (parser/OCR) → Normalize (canonicalize)
 | 05  | [05_metadata_design.md](./05_metadata_design.md)                                     | Metadata Design                 | Schema design, chunk-level provenance, stable IDs, section path normalization     |
 | 06  | [06_source_attribution_and_provenance.md](./06_source_attribution_and_provenance.md) | Source Attribution & Provenance | Chunk-level provenance tracking, attribution chains, audit trails                 |
 | 07  | [07_versioned_documents.md](./07_versioned_documents.md)                             | Versioned Documents             | Version tracking, diff-based updates, temporal metadata, superseded handling      |
+| 00  | [00_data_ingestion_with_libraries.md](./00_data_ingestion_with_libraries.md)         | 📚 Library Cookbook             | Docling, LlamaParse, Unstructured, LangChain loaders, LlamaIndex readers, PyMuPDF |
 
 ## Popular Libraries
 

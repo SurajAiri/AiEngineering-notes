@@ -26,6 +26,7 @@ Fixed-size (baseline) → Sliding window (fixes boundary loss)
 | 04  | [04_hierarchical_chunking.md](./04_hierarchical_chunking.md)                                         | Hierarchical Chunking             | Parent-child chunks, multi-level retrieval, parent document retriever pattern    |
 | 05  | [05_chunk_size_overlap_tradeoffs.md](./05_chunk_size_overlap_tradeoffs.md)                           | Size & Overlap Tradeoffs          | Chunk size vs recall vs cost, overlap percentage impact, empirical tuning        |
 | 06  | [06_chunk_query_alignment_and_structure_aware.md](./06_chunk_query_alignment_and_structure_aware.md) | Query Alignment & Structure-Aware | Headings, tables, code blocks, chunk-query mismatch failure modes                |
+| 00  | [00_chunking_with_libraries.md](./00_chunking_with_libraries.md)                                     | 📚 Library Cookbook               | LangChain splitters, LlamaIndex parsers, Chonkie, Docling chunker                |
 
 ## Popular Libraries
 

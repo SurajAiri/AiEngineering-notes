@@ -21,22 +21,23 @@ RAG is split into two halves:
 
 ### Phase 2(A) — Building RAG
 
-| #   | Section                                                           | Files    | Focus                                                      |
-| --- | ----------------------------------------------------------------- | -------- | ---------------------------------------------------------- |
-| 01  | [Data Ingestion](./01_data_ingestion/)                            | 7 files  | Cleaning, parsing, canonicalization, dedup, metadata       |
-| 02  | [Chunking](./02_chunking/)                                        | 6 files  | Fixed, sliding, semantic, hierarchical, structure-aware    |
-| 03  | [Retrieval](./03_retrieval/)                                      | 11 files | Vector, BM25, hybrid, query rewriting, HyDE, indexes       |
-| 04  | [Re-ranking & Context Assembly](./04_reranking_context_assembly/) | 4 files  | Cross-encoders, packing, diversity, prompt design for RAG  |
-| 05  | [Advanced RAG Architectures](./05_advanced_rag_architectures/)    | 4 files  | ⚠️ GraphRAG, Agentic RAG, Multimodal RAG, CRAG             |
-| 06  | [Failure Modes](./06_failure_modes/)                              | 1 file   | All 6 build-time failure modes with detection & prevention |
+| #   | Section                                                           | Files    | Focus                                                                                |
+| --- | ----------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------ |
+| 01  | [Data Ingestion](./01_data_ingestion/)                            | 8 files  | Cleaning, parsing, canonicalization, dedup, metadata + **library cookbook**          |
+| 02  | [Chunking](./02_chunking/)                                        | 7 files  | Fixed, sliding, semantic, hierarchical, structure-aware + **library cookbook**       |
+| 03  | [Retrieval](./03_retrieval/)                                      | 14 files | Vector, BM25, hybrid, query rewriting, HyDE, routing, caching + **library cookbook** |
+| 04  | [Re-ranking & Context Assembly](./04_reranking_context_assembly/) | 5 files  | Cross-encoders, packing, diversity, prompt design + **library cookbook**             |
+| 05  | [Advanced RAG Architectures](./05_advanced_rag_architectures/)    | 4 files  | ⚠️ GraphRAG, Agentic RAG, Multimodal RAG, CRAG                                       |
+| 06  | [Failure Modes](./06_failure_modes/)                              | 3 files  | All 6 failure modes, **debugging checklist**, **guardrails & prompt injection**      |
 
 ### Phase 2(B) — Validating RAG
 
-| #   | Section                                          | Files   | Focus                                                      |
-| --- | ------------------------------------------------ | ------- | ---------------------------------------------------------- |
-| 07  | [Evaluation](./07_evaluation/)                   | 3 files | Golden sets, retrieval metrics, faithfulness & correctness |
-| 08  | [Production](./08_production/)                   | 3 files | Drift, cost/latency, observability & debugging             |
-| 09  | [Advanced Embeddings](./09_advanced_embeddings/) | 1 file  | ⚠️ ColBERT, Matryoshka, fine-tuning, multi-vector          |
+| #   | Section                                          | Files   | Focus                                                                                     |
+| --- | ------------------------------------------------ | ------- | ----------------------------------------------------------------------------------------- |
+| 07  | [Evaluation](./07_evaluation/)                   | 5 files | Golden sets, retrieval metrics, faithfulness, **RAGAS/DeepEval**, **CI/CD eval pipeline** |
+| 08  | [Production](./08_production/)                   | 4 files | Drift, cost/latency, observability (**LangSmith/LangFuse/Phoenix**), **deployment**       |
+| 09  | [Advanced Embeddings](./09_advanced_embeddings/) | 1 file  | ⚠️ ColBERT, Matryoshka, fine-tuning, multi-vector                                         |
+| 10  | [Capstone](./10_capstone/)                       | 3 files | **End-to-end production RAG** with LlamaIndex and LangChain                               |
 
 > ⚠️ = Advanced/Optional — good to read for depth, but not required for building your first production RAG system.
 
@@ -70,7 +71,10 @@ START HERE
     │                      (RAGAS, retrieval metrics, faithfulness)
     ▼
 08 Production ──────────── How do you keep it working in production?
-    │                      (Drift, cost, observability)
+    │                      (Drift, cost, observability, deployment)
+    ▼
+10 Capstone ────────────── Build full production RAG systems
+    │                      (LlamaIndex build + LangChain build)
     ▼
 ┌──────────────────────────── OPTIONAL / ADVANCED ────────────────────────────┐
 │ 05 Advanced RAG ──────── GraphRAG, Agentic RAG, Multimodal, CRAG           │
@@ -82,17 +86,26 @@ START HERE
 
 ## 🛠️ Key Libraries Used Throughout
 
-| Library               | Category     | Purpose                             |
-| --------------------- | ------------ | ----------------------------------- |
-| LangChain             | Framework    | Most popular RAG framework          |
-| LlamaIndex            | Framework    | Data framework for LLM applications |
-| sentence-transformers | Embeddings   | Open-source embedding models        |
-| FAISS                 | Vector Store | Fast local similarity search        |
-| ChromaDB              | Vector Store | Simple getting-started vector DB    |
-| Pinecone / Qdrant     | Vector Store | Managed production vector databases |
-| RAGAS                 | Evaluation   | RAG evaluation metrics + test gen   |
-| Cohere Rerank         | Reranking    | High-quality reranking API          |
-| Unstructured          | Parsing      | Multi-format document parsing       |
+| Library               | Category      | Purpose                             |
+| --------------------- | ------------- | ----------------------------------- |
+| LangChain             | Framework     | Most popular RAG framework          |
+| LlamaIndex            | Framework     | Data framework for LLM applications |
+| sentence-transformers | Embeddings    | Open-source embedding models        |
+| FAISS                 | Vector Store  | Fast local similarity search        |
+| Qdrant / Pinecone     | Vector Store  | Production vector databases         |
+| PGVector              | Vector Store  | PostgreSQL vector extension         |
+| RAGAS                 | Evaluation    | RAG evaluation metrics + test gen   |
+| DeepEval              | Evaluation    | pytest-style LLM evaluation         |
+| Cohere Rerank         | Reranking     | High-quality reranking API          |
+| FlashRank             | Reranking     | Free, local, fast reranking         |
+| Docling               | Parsing       | IBM's structure-aware parser        |
+| Unstructured          | Parsing       | Multi-format document parsing       |
+| LlamaParse            | Parsing       | Cloud parsing (LlamaIndex)          |
+| LangSmith             | Observability | Tracing + eval (LangChain)          |
+| LangFuse              | Observability | Open-source tracing (any framework) |
+| Arize Phoenix         | Observability | Embedding analysis + tracing        |
+| NeMo Guardrails       | Safety        | NVIDIA's guardrails framework       |
+| Presidio              | Safety        | Microsoft PII detection             |
 
 ---
 

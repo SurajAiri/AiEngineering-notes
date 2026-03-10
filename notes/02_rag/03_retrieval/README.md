@@ -35,6 +35,9 @@ Vector search → BM25 → Hybrid (combine both)
 | 09  | [09_index_algorithms.md](./09_index_algorithms.md)                                   | Index Algorithms                | HNSW vs IVF vs DiskANN, approximate vs exact search, index refresh      |
 | 10  | [10_quantization_aware_embeddings.md](./10_quantization_aware_embeddings.md)         | Quantization                    | Binary, scalar, product quantization, storage vs quality tradeoffs      |
 | 11  | [11_vector_databases_hands_on.md](./11_vector_databases_hands_on.md)                 | Vector Databases                | Pinecone, Weaviate, PGVector, Qdrant, Milvus — hands-on comparisons     |
+| 12  | [12_retrieval_routing.md](./12_retrieval_routing.md)                                 | Retrieval Routing               | Query classification, strategy selection, LlamaIndex RouterQueryEngine  |
+| 13  | [13_semantic_caching.md](./13_semantic_caching.md)                                   | Semantic Caching                | Embedding-based cache, TTL, LangChain cache, GPTCache                   |
+| 00  | [00_retrieval_with_libraries.md](./00_retrieval_with_libraries.md)                   | 📚 Library Cookbook             | LangChain retrievers, LlamaIndex retrievers, vector DB integrations     |
 
 > **Files 09-11 are "good to read" topics** — important for scaling and production, but you can build a working RAG system without them. Come back to these when you need to optimize.
 

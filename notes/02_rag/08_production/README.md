@@ -16,11 +16,12 @@ Reliability & drift (what goes wrong over time)
 
 ## Files
 
-| #   | File                                                             | Topic                     | Key Concepts                                                                                                                                  |
-| --- | ---------------------------------------------------------------- | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| 01  | [01_reliability_drift.md](./01_reliability_drift.md)             | Reliability & Drift       | Index drift detection, data freshness monitoring, regression testing, silent degradation detection (multi-signal monitoring)                  |
-| 02  | [02_cost_latency_stability.md](./02_cost_latency_stability.md)   | Cost, Latency & Stability | Token cost modeling, retrieval latency budgets, p95/p99 behavior, failure under load testing, cost optimization strategies                    |
-| 03  | [03_observability_debugging.md](./03_observability_debugging.md) | Observability & Debugging | Retrieval trace logging, chunk contribution analysis, source attribution tracking, A/B testing, user feedback integration, quality dashboards |
+| #   | File                                                             | Topic                     | Key Concepts                                                                                                                                                              |
+| --- | ---------------------------------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 01  | [01_reliability_drift.md](./01_reliability_drift.md)             | Reliability & Drift       | Index drift detection, data freshness monitoring, regression testing, silent degradation detection (multi-signal monitoring)                                              |
+| 02  | [02_cost_latency_stability.md](./02_cost_latency_stability.md)   | Cost, Latency & Stability | Token cost modeling, retrieval latency budgets, p95/p99 behavior, failure under load testing, cost optimization strategies                                                |
+| 03  | [03_observability_debugging.md](./03_observability_debugging.md) | Observability & Debugging | Retrieval trace logging, chunk contribution analysis, source attribution tracking, A/B testing, user feedback integration, quality dashboards, LangSmith/LangFuse/Phoenix |
+| 04  | [04_deployment_patterns.md](./04_deployment_patterns.md)         | Deployment Patterns       | FastAPI RAG service, LangServe, LlamaIndex deployment, Docker/docker-compose, streaming, scaling                                                                          |
 
 ## Popular Libraries
 

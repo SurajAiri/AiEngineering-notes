@@ -21,6 +21,8 @@ Cross-encoder re-ranking (score chunks better)
 | 01  | [01_cross_encoder_reranking.md](./01_cross_encoder_reranking.md)                     | Cross-Encoder Re-ranking                 | Bi-encoder vs cross-encoder, production pipeline, model comparison, batching                                                            |
 | 02  | [02_score_normalization_dedup_packing.md](./02_score_normalization_dedup_packing.md) | Score Normalization & Dedup              | Min-max/sigmoid normalization, context deduplication (MMR), token budget allocation                                                     |
 | 03  | [03_diversity_ordering_citations.md](./03_diversity_ordering_citations.md)           | Diversity, Packing, Ordering & Citations | MMR, breadth-first vs depth-first packing, diversity vs relevance tradeoff, λ tuning, citation alignment, "lost in the middle" ordering |
+| 04  | [04_prompt_design_for_rag.md](./04_prompt_design_for_rag.md)                         | Prompt Design for RAG                    | Context formatting, citation instructions, refusal behavior, system prompts for RAG                                                     |
+| 00  | [00_reranking_with_libraries.md](./00_reranking_with_libraries.md)                   | 📚 Library Cookbook                      | FlashRank, Cohere Rerank, LangChain compression, LlamaIndex rerankers                                                                   |
 
 ## Popular Libraries
 

@@ -800,6 +800,142 @@ def dashboard_metrics(
 
 ---
 
+## With Observability Platforms
+
+The custom tracing above is great for learning, but in production use an observability platform.
+
+### Quick Platform Comparison
+
+| Platform          | Type                        | Best For                            | Cost                      |
+| ----------------- | --------------------------- | ----------------------------------- | ------------------------- |
+| **LangSmith**     | Closed-source SaaS          | LangChain users, best debugger UI   | Free tier (5K traces/mo)  |
+| **LangFuse**      | Open-source (self-hostable) | Privacy-sensitive, any framework    | Free (self-host) or cloud |
+| **Arize Phoenix** | Open-source                 | Embedding analysis, drift detection | Free                      |
+
+### LangSmith — Zero-Code Tracing for LangChain
+
+```bash
+pip install langsmith
+export LANGCHAIN_TRACING_V2=true
+export LANGCHAIN_API_KEY="your-key"
+export LANGCHAIN_PROJECT="my-rag-prod"
+```
+
+```python
+"""
+Once env vars are set, ALL LangChain calls are automatically traced.
+No code changes needed.
+"""
+# Your existing LangChain code — now fully traced
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+
+llm = ChatOpenAI(model="gpt-4o-mini")
+prompt = ChatPromptTemplate.from_template("Answer: {question}")
+chain = prompt | llm
+
+# This call appears in the LangSmith dashboard with:
+# - Full prompt text, LLM response, latency, token count
+# - If using a RAG chain: retrieved documents, scores, reranking
+response = chain.invoke({"question": "What is RAG?"})
+# View at: https://smith.langchain.com
+```
+
+### LangFuse — Open-Source Tracing (Any Framework)
+
+```bash
+pip install langfuse
+export LANGFUSE_SECRET_KEY="sk-lf-..."
+export LANGFUSE_PUBLIC_KEY="pk-lf-..."
+export LANGFUSE_HOST="https://cloud.langfuse.com"  # or self-hosted URL
+```
+
+```python
+"""
+LangFuse works with any Python code — not just LangChain.
+Use the @observe decorator to trace functions automatically.
+"""
+from langfuse.decorators import observe, langfuse_context
+
+
+@observe(name="rag-query")
+def rag_pipeline(question: str) -> dict:
+    chunks = retrieve(question)
+    reranked = rerank(question, chunks)
+    answer = generate(question, reranked)
+
+    # Add custom metadata to the trace
+    langfuse_context.update_current_observation(
+        metadata={"num_chunks": len(chunks), "model": "gpt-4o-mini"},
+    )
+    return {"answer": answer}
+
+
+@observe()
+def retrieve(question: str) -> list:
+    # Each @observe call creates a child span in the trace
+    return ["chunk1", "chunk2"]
+
+
+@observe()
+def rerank(question: str, chunks: list) -> list:
+    return chunks[:2]
+
+
+@observe()
+def generate(question: str, context: list) -> str:
+    return "Generated answer"
+
+
+# With LangChain (callback handler):
+from langfuse.callback import CallbackHandler
+langfuse_handler = CallbackHandler()
+# chain.invoke({"question": q}, config={"callbacks": [langfuse_handler]})
+```
+
+### Arize Phoenix — Embedding Visualization
+
+```bash
+pip install arize-phoenix openinference-instrumentation-langchain
+```
+
+```python
+"""
+Phoenix runs locally and gives you a UI for trace inspection + embedding analysis.
+"""
+import phoenix as px
+
+# Launch local UI (http://localhost:6006)
+session = px.launch_app()
+
+# Auto-instrument LangChain
+from phoenix.otel import register
+from openinference.instrumentation.langchain import LangChainInstrumentor
+
+tracer_provider = register(project_name="my-rag")
+LangChainInstrumentor().instrument(tracer_provider=tracer_provider)
+
+# Now all LangChain calls show up in Phoenix UI with:
+# - Trace waterfall (latency breakdown per step)
+# - Retrieved document inspection
+# - Embedding space visualization (UMAP)
+# - Drift detection between query clusters
+```
+
+### Which Platform to Choose?
+
+```
+"I'm using LangChain"          → LangSmith (zero-config)
+"I need self-hosting / privacy" → LangFuse (self-host on Docker)
+"I need embedding analysis"     → Arize Phoenix (local UMAP viz)
+"I want to start free and easy" → LangFuse Cloud (free tier)
+"I need all three"              → LangFuse for tracing + RAGAS for metrics
+```
+
+> **Deep dive:** See `07_evaluation/04_evaluation_frameworks.md` for combining these platforms with RAGAS evaluation.
+
+---
+
 ## Key Takeaways
 
 1. **Log every query as a trace** — you need the full pipeline trace to debug issues.
@@ -808,3 +944,4 @@ def dashboard_metrics(
 4. **Dashboards need alerts** — metrics nobody looks at are useless.
 5. **A/B test retrieval changes** — don't deploy blindly, measure the impact.
 6. **The debugging flow: trace → identify stage → fix root cause** — traces tell you WHERE it broke.
+7. **Use a platform in production** — LangSmith, LangFuse, or Phoenix replaces custom trace logging with mature tooling.
