@@ -217,3 +217,11 @@ __marimo__/
 
 # macOS
 .DS_Store
+
+# large files
+*.zip
+*.tar.gz
+*.pdf
+*.docx
+*.xlsx
+*.csv
