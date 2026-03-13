@@ -478,4 +478,4 @@ class GuardedRAGPipeline:
 
 ## Syllabus Mapping
 
-Not explicitly in `p2_rag_depth.md` but critical for production RAG systems. Maps to safety concerns in the overall AI Engineering checklist (§5.3 Guardrails).
+Not explicitly in `p2_rag_depth.md` but critical for production RAG systems. Maps to safety concerns in the overall AI Engineering checklist (5.3 Guardrails).

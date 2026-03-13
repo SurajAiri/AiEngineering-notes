@@ -84,4 +84,4 @@ Vector search → BM25 → Hybrid (combine both)
 
 ## Syllabus Mapping
 
-Maps to **§2.3** in `p2_rag_depth.md` — covers vector similarity, BM25, hybrid retrieval, metadata filtering, query rewriting, multi-query expansion, HyDE, query-document mismatch mechanics, adaptive retrieval depth, retrieval abstention, HNSW/IVF/DiskANN tradeoffs, approximate vs exact search, index refresh strategies, quantization-aware embeddings, and hands-on with vector database systems.
+Maps to **2.3** in `p2_rag_depth.md` — covers vector similarity, BM25, hybrid retrieval, metadata filtering, query rewriting, multi-query expansion, HyDE, query-document mismatch mechanics, adaptive retrieval depth, retrieval abstention, HNSW/IVF/DiskANN tradeoffs, approximate vs exact search, index refresh strategies, quantization-aware embeddings, and hands-on with vector database systems.

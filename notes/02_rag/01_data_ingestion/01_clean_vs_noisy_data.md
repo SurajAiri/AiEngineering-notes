@@ -372,7 +372,7 @@ class LegalDocumentCleaner(DomainCleaner):
         # Remove repeated party names in full caps (common in legal docs)
         text = re.sub(r'^[A-Z\s,]+(?:INC|LLC|CORP|LTD)\.?\s*$', '', text, flags=re.MULTILINE)
         # Normalize section references
-        text = re.sub(r'Section\s+(\d+)', r'§\1', text)
+        text = re.sub(r'Section\s+(\d+)', r'\1', text)
         return text
 
 

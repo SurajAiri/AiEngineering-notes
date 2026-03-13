@@ -51,4 +51,4 @@ You might need advanced architectures when:
 
 ## Syllabus Mapping
 
-Maps to **§2.4.5** in `p2_rag_depth.md` — covers GraphRAG, Agentic RAG, Multimodal RAG, and Corrective RAG (CRAG) with both conceptual explanations and working implementations.
+Maps to **2.4.5** in `p2_rag_depth.md` — covers GraphRAG, Agentic RAG, Multimodal RAG, and Corrective RAG (CRAG) with both conceptual explanations and working implementations.

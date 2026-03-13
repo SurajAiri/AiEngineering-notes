@@ -45,4 +45,4 @@ Most RAG failures are **silent** — the system returns an answer that looks pla
 
 ## Syllabus Mapping
 
-Maps to **§2.5** in `p2_rag_depth.md` — covers all 6 failure modes with detection strategies, prevention techniques, and production code examples.
+Maps to **2.5** in `p2_rag_depth.md` — covers all 6 failure modes with detection strategies, prevention techniques, and production code examples.

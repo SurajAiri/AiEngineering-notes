@@ -504,4 +504,4 @@ Which chunking library should I use?
 
 ## Syllabus Mapping
 
-Maps to **§2.2** in `p2_rag_depth.md`. This cookbook complements the concept files (01–06) by showing production library usage for each strategy.
+Maps to **2.2** in `p2_rag_depth.md`. This cookbook complements the concept files (01–06) by showing production library usage for each strategy.

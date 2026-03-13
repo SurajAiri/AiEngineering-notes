@@ -364,4 +364,4 @@ Should I use a reranker?
 
 ## Syllabus Mapping
 
-Maps to **§2.4** in `p2_rag_depth.md`. This cookbook complements the concept files (01–04) by showing production library usage for re-ranking.
+Maps to **2.4** in `p2_rag_depth.md`. This cookbook complements the concept files (01–04) by showing production library usage for re-ranking.

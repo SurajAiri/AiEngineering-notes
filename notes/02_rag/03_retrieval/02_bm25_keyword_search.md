@@ -54,7 +54,7 @@ This is the limitation AND the strength of BM25:
 │ API paths: "/api/v2/users"    │ Multilingual queries       │
 │ Config keys: "max_retries"    │ Vague or exploratory Q&A   │
 │ Rare domain terms             │ Questions about concepts   │
-│ Legal citations: "42 USC §1983"│ "What does X mean?"       │
+│ Legal citations: "42 USC 1983"│ "What does X mean?"       │
 └───────────────────────────────┴────────────────────────────┘
 ```
 

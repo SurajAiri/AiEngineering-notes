@@ -398,4 +398,4 @@ cache_key = f"{query}:v{data_version}"
 
 ## Syllabus Mapping
 
-Not explicitly in `p2_rag_depth.md` but critical for **§2.10 Cost, Latency & Stability**. Caching is a first-line defense against cost and latency problems in production RAG.
+Not explicitly in `p2_rag_depth.md` but critical for **2.10 Cost, Latency & Stability**. Caching is a first-line defense against cost and latency problems in production RAG.

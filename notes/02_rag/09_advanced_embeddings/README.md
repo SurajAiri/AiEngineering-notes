@@ -43,4 +43,4 @@ Start with a standard bi-encoder (`all-MiniLM-L6-v2` or `text-embedding-3-small`
 
 ## Syllabus Mapping
 
-Maps to **§2.12** in `p2_rag_depth.md` — covers late-interaction models (ColBERT, ColPali), Matryoshka embeddings, domain-specific embedding fine-tuning, and multi-vector representations.
+Maps to **2.12** in `p2_rag_depth.md` — covers late-interaction models (ColBERT, ColPali), Matryoshka embeddings, domain-specific embedding fine-tuning, and multi-vector representations.

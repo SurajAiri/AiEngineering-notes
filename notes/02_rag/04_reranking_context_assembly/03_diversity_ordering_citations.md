@@ -528,9 +528,9 @@ if __name__ == "__main__":
     ]
 
     source_labels = [
-        "K8s Security Guide §4.2",
-        "K8s Networking Guide §2.1",
-        "K8s Production Checklist §7.3",
+        "K8s Security Guide 4.2",
+        "K8s Networking Guide 2.1",
+        "K8s Production Checklist 7.3",
     ]
 
     cited = aligner.format_with_citations(answer, source_chunks, source_labels)

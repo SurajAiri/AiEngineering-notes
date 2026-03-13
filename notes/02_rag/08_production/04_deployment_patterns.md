@@ -448,4 +448,4 @@ Optimization levers:
 
 ## Syllabus Mapping
 
-Maps to `p2_rag_depth.md` §2.8 (Production) and `01_ai_engineering_checklist.md` §5 (Containerization & DevOps).
+Maps to `p2_rag_depth.md` 2.8 (Production) and `01_ai_engineering_checklist.md` 5 (Containerization & DevOps).

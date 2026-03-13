@@ -80,8 +80,8 @@ print(results)
 
 ## Syllabus Mapping
 
-Maps to **§2.6–2.8** in `p2_rag_depth.md`:
+Maps to **2.6–2.8** in `p2_rag_depth.md`:
 
-- **§2.6** — Golden query sets, document-answer alignment, query difficulty stratification, temporal evaluation sets
-- **§2.7** — Recall@k, MRR, nDCG, coverage vs precision, hybrid retrieval attribution
-- **§2.8** — Context-only answering, answer-context attribution, citation accuracy, refusal conditions, partial answer detection
+- **2.6** — Golden query sets, document-answer alignment, query difficulty stratification, temporal evaluation sets
+- **2.7** — Recall@k, MRR, nDCG, coverage vs precision, hybrid retrieval attribution
+- **2.8** — Context-only answering, answer-context attribution, citation accuracy, refusal conditions, partial answer detection

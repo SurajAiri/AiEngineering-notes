@@ -54,4 +54,4 @@ Cross-encoder re-ranking (score chunks better)
 
 ## Syllabus Mapping
 
-Maps to **§2.4** in `p2_rag_depth.md` — covers cross-encoder re-ranking, score normalization, context deduplication, token budget allocation, citation alignment, context packing strategies (breadth-first vs depth-first), diversity vs relevance tradeoffs, and ordering context for answerability.
+Maps to **2.4** in `p2_rag_depth.md` — covers cross-encoder re-ranking, score normalization, context deduplication, token budget allocation, citation alignment, context packing strategies (breadth-first vs depth-first), diversity vs relevance tradeoffs, and ordering context for answerability.

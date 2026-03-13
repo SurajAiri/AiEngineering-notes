@@ -513,4 +513,4 @@ def print_trend_report(history: list[dict]):
 
 ## Syllabus Mapping
 
-Maps to `p2_rag_depth.md` §2.7 (Evaluation) and §2.8 (Production — continuous monitoring).
+Maps to `p2_rag_depth.md` 2.7 (Evaluation) and 2.8 (Production — continuous monitoring).

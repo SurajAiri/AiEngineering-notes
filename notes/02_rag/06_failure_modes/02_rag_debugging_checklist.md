@@ -449,4 +449,4 @@ The most common root causes in practice:
 
 ## Syllabus Mapping
 
-Maps to **§2.5 Failure Modes** in `p2_rag_depth.md`. This checklist is the practical companion to the failure modes theory — when something goes wrong, use this to find and fix it.
+Maps to **2.5 Failure Modes** in `p2_rag_depth.md`. This checklist is the practical companion to the failure modes theory — when something goes wrong, use this to find and fix it.

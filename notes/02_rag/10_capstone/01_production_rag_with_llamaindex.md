@@ -467,4 +467,4 @@ When discussing this project, emphasize:
 
 ## Syllabus Mapping
 
-This capstone integrates all sections: §2.1 (Data Ingestion) → §2.2 (Chunking) → §2.3 (Retrieval) → §2.4 (Reranking) → §2.7 (Evaluation) → §2.8 (Production).
+This capstone integrates all sections: 2.1 (Data Ingestion) → 2.2 (Chunking) → 2.3 (Retrieval) → 2.4 (Reranking) → 2.7 (Evaluation) → 2.8 (Production).

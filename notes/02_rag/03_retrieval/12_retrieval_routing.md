@@ -367,4 +367,4 @@ retrieval_branch = RunnableBranch(
 
 ## Syllabus Mapping
 
-Maps to **§2.6.3** in `p2b_context_retriever.md` — Retrieval Strategy Selection (Routing Layer). This is a production-critical pattern that determines retrieval quality at the system level.
+Maps to **2.6.3** in `p2b_context_retriever.md` — Retrieval Strategy Selection (Routing Layer). This is a production-critical pattern that determines retrieval quality at the system level.

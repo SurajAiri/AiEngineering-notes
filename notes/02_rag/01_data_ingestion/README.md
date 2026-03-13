@@ -15,6 +15,30 @@ Raw Document → Extract (parser/OCR) → Normalize (canonicalize)
 → Deduplicate → Tag (metadata) → Track (provenance) → Version
 ```
 
+## Production Grade Data Ingestion Pipeline
+
+```
+1. Document acquisition
+   ↓
+2. Parsing / extraction
+   ↓
+3. Cleaning & normalization
+   ↓
+4. Document canonicalization
+   ↓
+5. Document-level deduplication
+   ↓
+6. Metadata enrichment
+   ↓
+7. Chunking
+   ↓
+8. Chunk-level deduplication
+   ↓
+9. Embedding
+   ↓
+10. Indexing (vector / hybrid store)
+```
+
 ## Files
 
 | #   | File                                                                                 | Topic                           | Key Concepts                                                                      |
@@ -45,6 +69,10 @@ Raw Document → Extract (parser/OCR) → Normalize (canonicalize)
 
 **A:** Start with **PyMuPDF** for text-native PDFs and **Unstructured** for mixed formats. If you have complex layouts (scanned docs, tables), try **LlamaParse**. Don't spend days on parsers — pick one and see if extraction quality is good enough for your retrieval.
 
+### Q: What is difference b/w document canonicalization & deduplication.
+
+**A:** _Canonicalization_: make identical content structurally identical <br>_Deduplication_: remove multiple copies of identical content
+
 ### Q: Do I need to do ALL these steps (clean, dedup, metadata...)?
 
 **A:** For a prototype, you can skip dedup, versioning, and provenance. The minimum for a working system is: **extract → clean → chunk → embed**. Add the other steps when you need production quality.
@@ -57,6 +85,13 @@ Raw Document → Extract (parser/OCR) → Normalize (canonicalize)
 
 **A:** Ingestion is the **offline** pipeline. Its output is clean, chunked, metadata-tagged documents ready for embedding. The quality ceiling of your entire RAG system is set here — if important info is lost during parsing or cleaning, no retrieval trick will get it back.
 
+## Quick Notes
+
+Cleaning → remove bad data
+Normalization → standardize text
+Canonicalization → standardize structure
+Deduplication → remove redundant content
+
 ## Syllabus Mapping
 
-Maps to **§2.1** in `p2_rag_depth.md` — covers all checklist items including deduplication strategies (exact, near-duplicate, semantic), versioned documents, metadata design, source attribution, document canonicalization, chunk-level provenance, and parser/OCR failure awareness.
+Maps to **2.1** in `p2_rag_depth.md` — covers all checklist items including deduplication strategies (exact, near-duplicate, semantic), versioned documents, metadata design, source attribution, document canonicalization, chunk-level provenance, and parser/OCR failure awareness.

@@ -85,4 +85,4 @@ Do your documents have clear topic shifts?
 
 ## Syllabus Mapping
 
-Maps to **§2.2** in `p2_rag_depth.md` — covers fixed-size, sliding window, semantic, hierarchical chunking, overlap tradeoffs, chunk size vs recall vs cost, chunk-query alignment failure modes, and structure-aware chunking (headings, tables, code blocks).
+Maps to **2.2** in `p2_rag_depth.md` — covers fixed-size, sliding window, semantic, hierarchical chunking, overlap tradeoffs, chunk size vs recall vs cost, chunk-query alignment failure modes, and structure-aware chunking (headings, tables, code blocks).

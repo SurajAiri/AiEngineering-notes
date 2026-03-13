@@ -295,7 +295,7 @@ test_df.to_csv("eval_testset.csv", index=False)
 | Using GPT-3.5 as evaluator          | Weak at claim verification | Use GPT-4o or GPT-4o-mini minimum |
 | Not checking per-sample scores      | Average hides outliers     | Always inspect the DataFrame      |
 | Only using auto-generated test sets | May not cover edge cases   | Mix auto + manual test cases      |
-| Running RAGAS once and done         | Quality drifts over time   | Automate in CI/CD (see §5)        |
+| Running RAGAS once and done         | Quality drifts over time   | Automate in CI/CD (see 5)         |
 | Ignoring context_recall metric      | Retrieval issues invisible | Always include retrieval metrics  |
 
 ---
@@ -837,4 +837,4 @@ For CI/CD regression tests: Add DeepEval regardless of choice above
 
 ## Syllabus Mapping
 
-Maps to `p2_rag_depth.md` §2.7 (Evaluation) and `01_ai_engineering_checklist.md` (observability + evaluation).
+Maps to `p2_rag_depth.md` 2.7 (Evaluation) and `01_ai_engineering_checklist.md` (observability + evaluation).

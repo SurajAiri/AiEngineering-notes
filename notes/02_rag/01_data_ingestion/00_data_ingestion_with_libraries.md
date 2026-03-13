@@ -684,4 +684,4 @@ What is your document format?
 
 ## Syllabus Mapping
 
-Maps to **§2.1** in `p2_rag_depth.md`. This cookbook complements the concept files (01–07) by showing how to use production libraries instead of writing parsers from scratch.
+Maps to **2.1** in `p2_rag_depth.md`. This cookbook complements the concept files (01–07) by showing how to use production libraries instead of writing parsers from scratch.

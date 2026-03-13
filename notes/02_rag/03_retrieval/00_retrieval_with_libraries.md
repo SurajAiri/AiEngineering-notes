@@ -513,4 +513,4 @@ for node in response.source_nodes:
 
 ## Syllabus Mapping
 
-Maps to **§2.3** in `p2_rag_depth.md`. This cookbook complements the concept files (01–11) by showing production library usage for retrieval patterns.
+Maps to **2.3** in `p2_rag_depth.md`. This cookbook complements the concept files (01–11) by showing production library usage for retrieval patterns.

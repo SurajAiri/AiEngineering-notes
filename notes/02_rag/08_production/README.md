@@ -60,8 +60,8 @@ Most of the cost is in the LLM generation step. Optimize by reducing context siz
 
 ## Syllabus Mapping
 
-Maps to **§2.9–2.11** in `p2_rag_depth.md`:
+Maps to **2.9–2.11** in `p2_rag_depth.md`:
 
-- **§2.9** — Index drift, data freshness, silent degradation detection, regression testing
-- **§2.10** — Token cost modeling, retrieval latency budgets, p95/p99 behavior, failure under load
-- **§2.11** — Retrieval trace logging, chunk contribution analysis, source attribution tracking, A/B testing, user feedback integration, quality dashboards
+- **2.9** — Index drift, data freshness, silent degradation detection, regression testing
+- **2.10** — Token cost modeling, retrieval latency budgets, p95/p99 behavior, failure under load
+- **2.11** — Retrieval trace logging, chunk contribution analysis, source attribution tracking, A/B testing, user feedback integration, quality dashboards
